@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useExam } from "@/context/ExamContext";
+import { updateSessionTopic } from "@/lib/firestore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -14,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Lock, Play, User, Layers } from "lucide-react";
+import { BookOpen, Lock, Play, User, Layers, Loader2 } from "lucide-react";
 
 export default function TopicSelectionPage() {
   const router = useRouter();
@@ -22,6 +23,7 @@ export default function TopicSelectionPage() {
 
   const [selectedTopic, setSelectedTopic] = useState("");
   const [isLocked, setIsLocked] = useState(false);
+  const [isLocking, setIsLocking] = useState(false);
 
   // Redirect if not logged in
   useEffect(() => {
@@ -33,10 +35,20 @@ export default function TopicSelectionPage() {
   // Get topics for selected category
   const availableTopics = config.topics[session.category] || [];
 
-  const handleLockTopic = () => {
-    if (!selectedTopic) return;
-    selectTopic(selectedTopic);
-    setIsLocked(true);
+  const handleLockTopic = async () => {
+    if (!selectedTopic || isLocking) return;
+    
+    setIsLocking(true);
+    try {
+      // Save topic to Firestore
+      await updateSessionTopic(session.rollNumber, selectedTopic);
+      selectTopic(selectedTopic);
+      setIsLocked(true);
+    } catch (error) {
+      console.error("Failed to lock topic:", error);
+    } finally {
+      setIsLocking(false);
+    }
   };
 
   const handleStartExam = () => {

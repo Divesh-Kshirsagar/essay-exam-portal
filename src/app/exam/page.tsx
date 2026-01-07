@@ -10,9 +10,10 @@ import { ResultsModal } from "@/components/ResultsModal";
 import { FullscreenWarning } from "@/components/FullscreenWarning";
 import { useAntiCheat } from "@/hooks/useAntiCheat";
 import { useDraftRecovery } from "@/hooks/useDraftRecovery";
+import { useFirestoreAutosave } from "@/hooks/useFirestoreAutosave";
 import { handleSubmit, type APIResponse } from "@/lib/handleSubmit";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen } from "lucide-react";
+import { BookOpen, Cloud, CloudOff } from "lucide-react";
 
 export default function ExamPage() {
   const router = useRouter();
@@ -43,8 +44,16 @@ export default function ExamPage() {
     dismissFullscreenWarning,
   } = useAntiCheat();
 
-  // Draft recovery
+  // Draft recovery (localStorage backup)
   const { clearDraft } = useDraftRecovery(session.rollNumber, essay, setEssay);
+
+  // Firestore autosave with dirty check (every 30 seconds)
+  const { isDirty } = useFirestoreAutosave(
+    session.rollNumber,
+    essay,
+    focusLossCount,
+    session.examStarted && !isSubmitted
+  );
 
   // Calculate word count
   const wordCount = essay.trim() ? essay.trim().split(/\s+/).length : 0;
@@ -114,14 +123,30 @@ export default function ExamPage() {
         {/* Header spacing for mobile menu */}
         <div className="h-12 lg:h-0" />
 
-        {/* Topic Display */}
+        {/* Topic Display with Autosave Status */}
         <div className="max-w-4xl mx-auto w-full mb-4">
-          <div className="flex items-center gap-2 p-4 rounded-lg bg-primary/5 border border-primary/20">
-            <BookOpen className="w-5 h-5 text-primary" />
-            <span className="text-sm text-muted-foreground">Topic:</span>
-            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30">
-              {session.topic}
-            </Badge>
+          <div className="flex items-center justify-between p-4 rounded-lg bg-primary/5 border border-primary/20">
+            <div className="flex items-center gap-2">
+              <BookOpen className="w-5 h-5 text-primary" />
+              <span className="text-sm text-muted-foreground">Topic:</span>
+              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30">
+                {session.topic}
+              </Badge>
+            </div>
+            {/* Autosave Status */}
+            <div className="flex items-center gap-1 text-xs">
+              {isDirty ? (
+                <span className="flex items-center gap-1 text-amber-400">
+                  <CloudOff className="w-3 h-3" />
+                  Saving...
+                </span>
+              ) : (
+                <span className="flex items-center gap-1 text-emerald-400">
+                  <Cloud className="w-3 h-3" />
+                  Saved
+                </span>
+              )}
+            </div>
           </div>
         </div>
 

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useExam } from "@/context/ExamContext";
 import { getAllSubmissions, type Submission } from "@/lib/firestore";
+import { pingDatabase } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,6 +26,8 @@ import {
   CheckCircle2,
   Loader2,
   Flame,
+  Wifi,
+  WifiOff,
 } from "lucide-react";
 
 export default function AdminPage() {
@@ -34,6 +37,11 @@ export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
   const [authError, setAuthError] = useState("");
+
+  // Database connection state
+  const [dbStatus, setDbStatus] = useState<"checking" | "connected" | "disconnected">("checking");
+  const [dbLatency, setDbLatency] = useState<number | null>(null);
+  const [dbError, setDbError] = useState<string | null>(null);
 
   // Config state
   const [categories, setCategories] = useState<string[]>([]);
@@ -51,6 +59,29 @@ export default function AdminPage() {
   // Notification state
   const [saveSuccess, setSaveSuccess] = useState(false);
 
+  // Ping database function
+  const checkDatabaseConnection = useCallback(async () => {
+    setDbStatus("checking");
+    setDbError(null);
+    
+    const result = await pingDatabase();
+    
+    if (result.success) {
+      setDbStatus("connected");
+      setDbLatency(result.latencyMs ?? null);
+    } else {
+      setDbStatus("disconnected");
+      setDbError(result.error ?? "Unknown error");
+    }
+  }, []);
+
+  // Check database connection when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      checkDatabaseConnection();
+    }
+  }, [isAuthenticated, checkDatabaseConnection]);
+
   // Initialize state from context
   useEffect(() => {
     setCategories([...config.categories]);
@@ -64,8 +95,9 @@ export default function AdminPage() {
   // Handle login
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    // Simple password check (in production, use proper auth)
-    if (password === (process.env.ADMIN_PASSWORD || "admin123")) {
+    // Password check - use NEXT_PUBLIC_ for client-side access
+    const adminPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "admin123";
+    if (password === adminPassword) {
       setIsAuthenticated(true);
       setAuthError("");
     } else {
@@ -225,14 +257,46 @@ export default function AdminPage() {
               </p>
             </div>
           </div>
-          <Button
-            variant="outline"
-            onClick={() => setIsAuthenticated(false)}
-            className="gap-2"
-          >
-            <LogOut className="w-4 h-4" />
-            Logout
-          </Button>
+          <div className="flex items-center gap-3">
+            {/* Database Status Indicator */}
+            <div
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border cursor-pointer transition-all hover:scale-105 ${
+                dbStatus === "checking"
+                  ? "bg-amber-500/10 border-amber-500/30 text-amber-400"
+                  : dbStatus === "connected"
+                    ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
+                    : "bg-red-500/10 border-red-500/30 text-red-400"
+              }`}
+              onClick={checkDatabaseConnection}
+              title={dbError ? `Error: ${dbError}` : dbLatency ? `Latency: ${dbLatency}ms` : "Click to check connection"}
+            >
+              {dbStatus === "checking" ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Checking DB...</span>
+                </>
+              ) : dbStatus === "connected" ? (
+                <>
+                  <Wifi className="w-3.5 h-3.5" />
+                  <span>DB Connected</span>
+                  {dbLatency && <span className="opacity-60">({dbLatency}ms)</span>}
+                </>
+              ) : (
+                <>
+                  <WifiOff className="w-3.5 h-3.5" />
+                  <span>DB Offline</span>
+                </>
+              )}
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => setIsAuthenticated(false)}
+              className="gap-2"
+            >
+              <LogOut className="w-4 h-4" />
+              Logout
+            </Button>
+          </div>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-6">

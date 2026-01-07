@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useExam } from "@/context/ExamContext";
+import { createStudentSession, hasAlreadySubmitted } from "@/lib/firestore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,11 +47,26 @@ export default function LoginPage() {
 
     setIsLoading(true);
 
-    // Simulate API check (can be replaced with actual validation)
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    try {
+      // Check if already submitted
+      const alreadySubmitted = await hasAlreadySubmitted(rollNumber);
+      if (alreadySubmitted) {
+        setError("This registration number has already submitted an exam.");
+        setIsLoading(false);
+        return;
+      }
 
-    login(rollNumber, category);
-    router.push("/topic");
+      // Create/update session in Firestore
+      await createStudentSession(rollNumber, category);
+
+      // Update local state
+      login(rollNumber, category);
+      router.push("/topic");
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("Failed to connect. Please try again.");
+      setIsLoading(false);
+    }
   };
 
   return (

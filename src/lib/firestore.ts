@@ -2,6 +2,10 @@ import {
   collection,
   addDoc,
   getDocs,
+  getDoc,
+  setDoc,
+  updateDoc,
+  doc,
   query,
   orderBy,
   Timestamp,
@@ -32,7 +36,121 @@ export interface SubmissionInput {
   focusLossCount: number;
 }
 
+export interface StudentSession {
+  rollNumber: string;
+  category: string;
+  topic: string;
+  essay: string;
+  focusLossCount: number;
+  createdAt: Date;
+  lastSavedAt: Date;
+  isSubmitted: boolean;
+  examStartedAt?: Date;
+}
+
 const SUBMISSIONS_COLLECTION = "submissions";
+const SESSIONS_COLLECTION = "sessions";
+
+/**
+ * Create or update a student session on login
+ */
+export async function createStudentSession(
+  rollNumber: string,
+  category: string
+): Promise<string> {
+  const sessionRef = doc(db, SESSIONS_COLLECTION, rollNumber);
+  
+  const existingSession = await getDoc(sessionRef);
+  
+  if (existingSession.exists()) {
+    // Update existing session
+    await updateDoc(sessionRef, {
+      category,
+      lastSavedAt: Timestamp.now(),
+    });
+  } else {
+    // Create new session
+    await setDoc(sessionRef, {
+      rollNumber,
+      category,
+      topic: "",
+      essay: "",
+      focusLossCount: 0,
+      createdAt: Timestamp.now(),
+      lastSavedAt: Timestamp.now(),
+      isSubmitted: false,
+    });
+  }
+  
+  return rollNumber;
+}
+
+/**
+ * Update session with selected topic
+ */
+export async function updateSessionTopic(
+  rollNumber: string,
+  topic: string
+): Promise<void> {
+  const sessionRef = doc(db, SESSIONS_COLLECTION, rollNumber);
+  await updateDoc(sessionRef, {
+    topic,
+    examStartedAt: Timestamp.now(),
+    lastSavedAt: Timestamp.now(),
+  });
+}
+
+/**
+ * Save essay progress (called every 30 seconds with dirty check)
+ */
+export async function saveEssayProgress(
+  rollNumber: string,
+  essay: string,
+  focusLossCount: number
+): Promise<void> {
+  const sessionRef = doc(db, SESSIONS_COLLECTION, rollNumber);
+  await updateDoc(sessionRef, {
+    essay,
+    focusLossCount,
+    lastSavedAt: Timestamp.now(),
+  });
+}
+
+/**
+ * Get student session
+ */
+export async function getStudentSession(
+  rollNumber: string
+): Promise<StudentSession | null> {
+  const sessionRef = doc(db, SESSIONS_COLLECTION, rollNumber);
+  const snapshot = await getDoc(sessionRef);
+  
+  if (!snapshot.exists()) return null;
+  
+  const data = snapshot.data();
+  return {
+    rollNumber: data.rollNumber,
+    category: data.category,
+    topic: data.topic || "",
+    essay: data.essay || "",
+    focusLossCount: data.focusLossCount || 0,
+    createdAt: data.createdAt?.toDate() || new Date(),
+    lastSavedAt: data.lastSavedAt?.toDate() || new Date(),
+    isSubmitted: data.isSubmitted || false,
+    examStartedAt: data.examStartedAt?.toDate(),
+  };
+}
+
+/**
+ * Mark session as submitted
+ */
+export async function markSessionSubmitted(rollNumber: string): Promise<void> {
+  const sessionRef = doc(db, SESSIONS_COLLECTION, rollNumber);
+  await updateDoc(sessionRef, {
+    isSubmitted: true,
+    lastSavedAt: Timestamp.now(),
+  });
+}
 
 /**
  * Save a graded submission to Firestore
@@ -60,6 +178,9 @@ export async function saveSubmission(
     ...submission,
     submittedAt: Timestamp.fromDate(submission.submittedAt),
   });
+
+  // Mark session as submitted
+  await markSessionSubmitted(input.rollNumber);
 
   return docRef.id;
 }
@@ -94,6 +215,33 @@ export async function getAllSubmissions(): Promise<Submission[]> {
 }
 
 /**
+ * Fetch all sessions (for admin view)
+ */
+export async function getAllSessions(): Promise<StudentSession[]> {
+  const q = query(
+    collection(db, SESSIONS_COLLECTION),
+    orderBy("lastSavedAt", "desc")
+  );
+
+  const snapshot = await getDocs(q);
+
+  return snapshot.docs.map((doc) => {
+    const data = doc.data();
+    return {
+      rollNumber: data.rollNumber,
+      category: data.category,
+      topic: data.topic || "",
+      essay: data.essay || "",
+      focusLossCount: data.focusLossCount || 0,
+      createdAt: data.createdAt?.toDate() || new Date(),
+      lastSavedAt: data.lastSavedAt?.toDate() || new Date(),
+      isSubmitted: data.isSubmitted || false,
+      examStartedAt: data.examStartedAt?.toDate(),
+    };
+  });
+}
+
+/**
  * Check if a roll number has already submitted
  */
 export async function hasAlreadySubmitted(rollNumber: string): Promise<boolean> {
@@ -104,26 +252,4 @@ export async function hasAlreadySubmitted(rollNumber: string): Promise<boolean> 
 
   const snapshot = await getDocs(q);
   return !snapshot.empty;
-}
-
-/**
- * Get submissions by category
- */
-export async function getSubmissionsByCategory(category: string): Promise<Submission[]> {
-  const q = query(
-    collection(db, SUBMISSIONS_COLLECTION),
-    where("category", "==", category),
-    orderBy("submittedAt", "desc")
-  );
-
-  const snapshot = await getDocs(q);
-
-  return snapshot.docs.map((doc) => {
-    const data = doc.data();
-    return {
-      id: doc.id,
-      ...data,
-      submittedAt: data.submittedAt?.toDate() || new Date(),
-    } as Submission;
-  });
 }
