@@ -47,6 +47,8 @@ export default function AdminPage() {
   const [categories, setCategories] = useState<string[]>([]);
   const [topics, setTopics] = useState<Record<string, string[]>>({});
   const [examDuration, setExamDuration] = useState(60);
+  const [minWordCount, setMinWordCount] = useState(200);
+  const [maxWordCount, setMaxWordCount] = useState(1000);
   const [newCategory, setNewCategory] = useState("");
   const [newTopic, setNewTopic] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -87,6 +89,8 @@ export default function AdminPage() {
     setCategories([...config.categories]);
     setTopics({ ...config.topics });
     setExamDuration(config.examDurationMinutes);
+    setMinWordCount(config.minWordCount);
+    setMaxWordCount(config.maxWordCount);
     if (config.categories.length > 0) {
       setSelectedCategory(config.categories[0]);
     }
@@ -156,6 +160,8 @@ export default function AdminPage() {
       categories,
       topics,
       examDurationMinutes: examDuration,
+      minWordCount,
+      maxWordCount,
     });
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 3000);
@@ -414,6 +420,33 @@ export default function AdminPage() {
                 />
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="wordCount">Minimum Word Count</Label>
+                <Input
+                  id="wordCount"
+                  type="number"
+                  min={50}
+                  max={2000}
+                  value={minWordCount}
+                  onChange={(e) => setMinWordCount(parseInt(e.target.value) || 200)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="maxWordCount">Maximum Word Count</Label>
+                <Input
+                  id="maxWordCount"
+                  type="number"
+                  min={100}
+                  max={5000}
+                  value={maxWordCount}
+                  onChange={(e) => setMaxWordCount(parseInt(e.target.value) || 1000)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Essay must be between {minWordCount} and {maxWordCount} words
+                </p>
+              </div>
+
               <div className="p-4 rounded-lg bg-muted/30 border border-border/30">
                 <h4 className="text-sm font-semibold mb-2">Current Configuration</h4>
                 <ul className="text-xs text-muted-foreground space-y-1">
@@ -423,6 +456,7 @@ export default function AdminPage() {
                     {Object.values(topics).reduce((sum, arr) => sum + arr.length, 0)}
                   </li>
                   <li>• Duration: {examDuration} minutes</li>
+                  <li>• Word Limit: {minWordCount} - {maxWordCount} words</li>
                 </ul>
               </div>
 
