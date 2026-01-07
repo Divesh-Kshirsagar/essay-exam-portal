@@ -1,3 +1,6 @@
+import { saveSubmission, hasAlreadySubmitted, type SubmissionInput } from "./firestore";
+import { gradeEssay } from "./gemini";
+
 export interface SubmitData {
   essay: string;
   rollNumber: string;
@@ -16,35 +19,68 @@ export interface APIResponse {
   error?: string;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_GAS_URL || "YOUR_GAS_URL";
-
+/**
+ * Handle essay submission:
+ * 1. Check for duplicate submission
+ * 2. Grade essay using Gemini AI
+ * 3. Save to Firestore
+ */
 export async function handleSubmit(data: SubmitData): Promise<APIResponse> {
   try {
-    const response = await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        essay: data.essay,
-        rollNumber: data.rollNumber,
-        focusLossCount: data.focusLossCount,
-        category: data.category,
-        topic: data.topic,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    // Check if already submitted
+    const alreadySubmitted = await hasAlreadySubmitted(data.rollNumber);
+    if (alreadySubmitted) {
+      return {
+        status: "error",
+        error: "You have already submitted an essay. Multiple submissions are not allowed.",
+      };
     }
 
-    const result: APIResponse = await response.json();
-    return result;
+    // Calculate word count
+    const wordCount = data.essay.trim() ? data.essay.trim().split(/\s+/).length : 0;
+
+    // Validate word count
+    if (wordCount < 100) {
+      return {
+        status: "error",
+        error: `Essay must be at least 100 words. Current: ${wordCount} words.`,
+      };
+    }
+
+    if (wordCount > 300) {
+      return {
+        status: "error",
+        error: `Essay must not exceed 300 words. Current: ${wordCount} words.`,
+      };
+    }
+
+    // Grade the essay using Gemini AI
+    const gradeResult = await gradeEssay(data.essay, data.topic, wordCount);
+
+    // Save to Firestore
+    const submissionInput: SubmissionInput = {
+      rollNumber: data.rollNumber,
+      category: data.category,
+      topic: data.topic,
+      essay: data.essay,
+      focusLossCount: data.focusLossCount,
+    };
+
+    await saveSubmission(submissionInput, gradeResult);
+
+    return {
+      status: "success",
+      data: {
+        score: gradeResult.score,
+        feedback: gradeResult.feedback,
+        checkpoints: gradeResult.checkpoints,
+      },
+    };
   } catch (error) {
     console.error("Submission failed:", error);
     return {
       status: "error",
-      error: error instanceof Error ? error.message : "Submission failed",
+      error: error instanceof Error ? error.message : "Submission failed. Please try again.",
     };
   }
 }

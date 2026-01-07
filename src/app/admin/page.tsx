@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useExam } from "@/context/ExamContext";
+import { getAllSubmissions, type Submission } from "@/lib/firestore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
   Shield,
@@ -24,17 +24,8 @@ import {
   AlertCircle,
   CheckCircle2,
   Loader2,
+  Flame,
 } from "lucide-react";
-
-interface ResultItem {
-  rollNumber: string;
-  category: string;
-  topic: string;
-  score: number;
-  focusLossCount: number;
-  submittedAt: string;
-  essay: string;
-}
 
 export default function AdminPage() {
   const { config, updateConfig } = useExam();
@@ -53,7 +44,7 @@ export default function AdminPage() {
   const [selectedCategory, setSelectedCategory] = useState("");
 
   // Results state
-  const [results, setResults] = useState<ResultItem[]>([]);
+  const [results, setResults] = useState<Submission[]>([]);
   const [isLoadingResults, setIsLoadingResults] = useState(false);
   const [resultError, setResultError] = useState("");
 
@@ -138,46 +129,16 @@ export default function AdminPage() {
     setTimeout(() => setSaveSuccess(false), 3000);
   };
 
-  // Fetch results
+  // Fetch results from Firestore
   const handleFetchResults = async () => {
     setIsLoadingResults(true);
     setResultError("");
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_GAS_URL;
-      if (!apiUrl || apiUrl === "YOUR_GAS_URL") {
-        // Demo data for testing
-        setResults([
-          {
-            rollNumber: "12345678",
-            category: "Section A",
-            topic: "The Impact of Technology on Education",
-            score: 8,
-            focusLossCount: 2,
-            submittedAt: new Date().toISOString(),
-            essay: "Sample essay text...",
-          },
-          {
-            rollNumber: "87654321",
-            category: "AIML",
-            topic: "Ethics in Artificial Intelligence",
-            score: 9,
-            focusLossCount: 0,
-            submittedAt: new Date().toISOString(),
-            essay: "Another sample essay...",
-          },
-        ]);
-      } else {
-        const response = await fetch(`${apiUrl}?action=getResults`);
-        const data = await response.json();
-        if (data.status === "success") {
-          setResults(data.data || []);
-        } else {
-          setResultError(data.error || "Failed to fetch results");
-        }
-      }
+      const submissions = await getAllSubmissions();
+      setResults(submissions);
     } catch (error) {
-      setResultError("Failed to connect to server");
+      setResultError("Failed to fetch results from Firestore");
       console.error(error);
     } finally {
       setIsLoadingResults(false);
@@ -187,10 +148,10 @@ export default function AdminPage() {
   // Export results
   const handleExportResults = () => {
     const csv = [
-      "Roll Number,Category,Topic,Score,Focus Loss,Submitted At",
+      "Roll Number,Category,Topic,Score,Focus Loss,Word Count,Submitted At",
       ...results.map(
         (r) =>
-          `${r.rollNumber},${r.category},"${r.topic}",${r.score},${r.focusLossCount},${r.submittedAt}`
+          `${r.rollNumber},${r.category},"${r.topic}",${r.score},${r.focusLossCount},${r.wordCount},${r.submittedAt instanceof Date ? r.submittedAt.toISOString() : r.submittedAt}`
       ),
     ].join("\n");
 
