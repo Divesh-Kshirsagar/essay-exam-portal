@@ -4,6 +4,7 @@ import { gradeEssayAction } from "@/app/actions/gradeEssay";
   export interface SubmitData {
     essay: string;
     rollNumber: string;
+    name: string;
     focusLossCount: number;
     category: string;
     topic: string;
@@ -66,6 +67,7 @@ import { gradeEssayAction } from "@/app/actions/gradeEssay";
       // Save to Firestore
       const submissionInput: SubmissionInput = {
         rollNumber: data.rollNumber,
+        name: data.name,
         category: data.category,
         topic: data.topic,
         essay: data.essay,

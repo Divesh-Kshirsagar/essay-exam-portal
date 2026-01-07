@@ -23,6 +23,7 @@ export default function LoginPage() {
   const { config, login } = useExam();
 
   const [rollNumber, setRollNumber] = useState("");
+  const [name, setName] = useState("");
   const [category, setCategory] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -37,6 +38,11 @@ export default function LoginPage() {
 
     if (!isValidRollNumber) {
       setError("Registration number must be exactly 8 digits");
+      return;
+    }
+
+    if (!name.trim() || name.length < 3) {
+      setError("Please enter your full name (at least 3 characters)");
       return;
     }
 
@@ -57,10 +63,10 @@ export default function LoginPage() {
       }
 
       // Create/update session in Firestore
-      await createStudentSession(rollNumber, category);
+      await createStudentSession(rollNumber, name, category);
 
       // Update local state
-      login(rollNumber, category);
+      login(rollNumber, name, category);
       router.push("/topic");
     } catch (err) {
       console.error("Login error:", err);
@@ -137,6 +143,18 @@ export default function LoginPage() {
               )}
             </div>
 
+            {/* Name */}
+            <div className="space-y-2">
+              <Label htmlFor="name">Full Name</Label>
+              <Input
+                id="name"
+                type="text"
+                placeholder="Enter your full name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </div>
+
             {/* Category Selection */}
             <div className="space-y-2">
               <Label htmlFor="category">Section / Category</Label>
@@ -169,7 +187,7 @@ export default function LoginPage() {
             <Button
               type="submit"
               size="lg"
-              disabled={!isValidRollNumber || !category || isLoading}
+              disabled={!isValidRollNumber || !name.trim() || !category || isLoading}
               className="w-full gap-2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
             >
               {isLoading ? (

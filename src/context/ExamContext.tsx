@@ -13,6 +13,7 @@ export interface ExamConfig {
 
 export interface StudentSession {
   rollNumber: string;
+  name: string;
   category: string;
   topic: string;
   isLoggedIn: boolean;
@@ -23,7 +24,7 @@ export interface StudentSession {
 interface ExamContextType {
   config: ExamConfig;
   session: StudentSession;
-  login: (rollNumber: string, category: string) => void;
+  login: (rollNumber: string, name: string, category: string) => void;
   selectTopic: (topic: string) => void;
   startExam: () => void;
   logout: () => void;
@@ -62,6 +63,7 @@ const defaultConfig: ExamConfig = {
 
 const defaultSession: StudentSession = {
   rollNumber: "",
+  name: "",
   category: "",
   topic: "",
   isLoggedIn: false,
@@ -114,10 +116,11 @@ export function ExamProvider({ children }: { children: ReactNode }) {
     }
   }, [session, isInitialized]);
 
-  const login = useCallback((rollNumber: string, category: string) => {
+  const login = useCallback((rollNumber: string, name: string, category: string) => {
     setSession((prev) => ({
       ...prev,
       rollNumber,
+      name,
       category,
       isLoggedIn: true,
     }));

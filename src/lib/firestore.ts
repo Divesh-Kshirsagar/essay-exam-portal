@@ -17,6 +17,7 @@ import { db } from "./firebase";
 export interface Submission {
   id?: string;
   rollNumber: string;
+  name: string;
   category: string;
   topic: string;
   essay: string;
@@ -30,6 +31,7 @@ export interface Submission {
 
 export interface SubmissionInput {
   rollNumber: string;
+  name?: string;
   category: string;
   topic: string;
   essay: string;
@@ -40,6 +42,7 @@ export interface SubmissionInput {
 
 export interface StudentSession {
   rollNumber: string;
+  name?: string;
   category: string;
   topic: string;
   essay: string;
@@ -58,6 +61,7 @@ const SESSIONS_COLLECTION = "sessions";
  */
 export async function createStudentSession(
   rollNumber: string,
+  name: string,
   category: string
 ): Promise<string> {
   const sessionRef = doc(db, SESSIONS_COLLECTION, rollNumber);
@@ -67,6 +71,7 @@ export async function createStudentSession(
   if (existingSession.exists()) {
     // Update existing session
     await updateDoc(sessionRef, {
+      name,
       category,
       lastSavedAt: Timestamp.now(),
     });
@@ -74,6 +79,7 @@ export async function createStudentSession(
     // Create new session
     await setDoc(sessionRef, {
       rollNumber,
+      name,
       category,
       topic: "",
       essay: "",
@@ -132,6 +138,7 @@ export async function getStudentSession(
   const data = snapshot.data();
   return {
     rollNumber: data.rollNumber,
+    name: data.name || "",
     category: data.category,
     topic: data.topic || "",
     essay: data.essay || "",
@@ -165,6 +172,7 @@ export async function saveSubmission(
 
   const submission: Omit<Submission, "id"> = {
     rollNumber: input.rollNumber,
+    name: input.name || "",
     category: input.category,
     topic: input.topic,
     essay: input.essay,
@@ -203,6 +211,7 @@ export async function getAllSubmissions(): Promise<Submission[]> {
     return {
       id: doc.id,
       rollNumber: data.rollNumber,
+      name: data.name || "",
       category: data.category,
       topic: data.topic,
       essay: data.essay,
@@ -231,6 +240,7 @@ export async function getAllSessions(): Promise<StudentSession[]> {
     const data = doc.data();
     return {
       rollNumber: data.rollNumber,
+      name: data.name || "",
       category: data.category,
       topic: data.topic || "",
       essay: data.essay || "",

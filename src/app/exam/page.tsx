@@ -78,6 +78,7 @@ export default function ExamPage() {
       const response = await handleSubmit({
         essay,
         rollNumber: session.rollNumber,
+        name: session.name,
         focusLossCount,
         category: session.category,
         topic: session.topic,
