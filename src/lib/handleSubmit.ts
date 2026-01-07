@@ -1,5 +1,5 @@
 import { saveSubmission, hasAlreadySubmitted, type SubmissionInput } from "./firestore";
-import { gradeEssay } from "./gemini";
+import { gradeEssayAction } from "@/app/actions/gradeEssay";
 
   export interface SubmitData {
     essay: string;
@@ -61,7 +61,7 @@ import { gradeEssay } from "./gemini";
       }
   
       // Grade the essay using Gemini AI
-      const gradeResult = await gradeEssay(data.essay, data.topic, wordCount);
+      const gradeResult = await gradeEssayAction(data.essay, data.topic, charCount);
   
       // Save to Firestore
       const submissionInput: SubmissionInput = {

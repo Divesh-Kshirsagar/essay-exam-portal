@@ -81,7 +81,9 @@ export default function ExamPage() {
         focusLossCount,
         category: session.category,
         topic: session.topic,
-        charCount, // Pass character count
+        charCount,
+        minCharCount: config.minCharCount,
+        maxCharCount: config.maxCharCount,
       });
 
       setResult(response);

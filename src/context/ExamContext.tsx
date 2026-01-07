@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from "react";
 
 // Types
 export interface ExamConfig {
@@ -76,6 +76,43 @@ const ExamContext = createContext<ExamContextType | null>(null);
 export function ExamProvider({ children }: { children: ReactNode }) {
   const [config, setConfig] = useState<ExamConfig>(defaultConfig);
   const [session, setSession] = useState<StudentSession>(defaultSession);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Load from localStorage on mount
+  useEffect(() => {
+    const savedConfig = localStorage.getItem("exam_config");
+    const savedSession = localStorage.getItem("exam_session");
+
+    if (savedConfig) {
+      try {
+        setConfig(JSON.parse(savedConfig));
+      } catch (e) {
+        console.error("Failed to parse config", e);
+      }
+    }
+
+    if (savedSession) {
+      try {
+        setSession(JSON.parse(savedSession));
+      } catch (e) {
+        console.error("Failed to parse session", e);
+      }
+    }
+    setIsInitialized(true);
+  }, []);
+
+  // Save to localStorage on change
+  useEffect(() => {
+    if (isInitialized) {
+      localStorage.setItem("exam_config", JSON.stringify(config));
+    }
+  }, [config, isInitialized]);
+
+  useEffect(() => {
+    if (isInitialized) {
+      localStorage.setItem("exam_session", JSON.stringify(session));
+    }
+  }, [session, isInitialized]);
 
   const login = useCallback((rollNumber: string, category: string) => {
     setSession((prev) => ({
