@@ -55,9 +55,10 @@ export default function ExamPage() {
     session.examStarted && !isSubmitted
   );
 
-  // Calculate word count
-  const wordCount = essay.trim() ? essay.trim().split(/\s+/).length : 0;
-  const isValidWordCount = wordCount >= 100 && wordCount <= 300;
+  // Calculate character count
+  const charCount = essay.length;
+  // Character count validation based on config
+  const isValidLength = charCount >= config.minCharCount && charCount <= config.maxCharCount;
 
   // Handle time up
   const handleTimeUp = useCallback(() => {
@@ -80,6 +81,7 @@ export default function ExamPage() {
         focusLossCount,
         category: session.category,
         topic: session.topic,
+        charCount, // Pass character count
       });
 
       setResult(response);
@@ -156,6 +158,8 @@ export default function ExamPage() {
             essay={essay}
             setEssay={setEssay}
             isDisabled={isSubmitted || isSubmitting}
+            minCharCount={config.minCharCount}
+            maxCharCount={config.maxCharCount}
           />
         </div>
 
@@ -164,8 +168,10 @@ export default function ExamPage() {
           <SubmitButton
             onClick={handleSubmitClick}
             isSubmitting={isSubmitting}
-            isDisabled={isSubmitted || !isValidWordCount}
-            wordCount={wordCount}
+            isDisabled={isSubmitted || !isValidLength}
+            charCount={charCount}
+            minCharCount={config.minCharCount}
+            maxCharCount={config.maxCharCount}
           />
         </div>
       </main>

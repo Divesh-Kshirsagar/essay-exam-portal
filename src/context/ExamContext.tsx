@@ -7,8 +7,8 @@ export interface ExamConfig {
   categories: string[];
   topics: Record<string, string[]>;
   examDurationMinutes: number;
-  minWordCount: number;
-  maxWordCount: number;
+  minCharCount: number;
+  maxCharCount: number;
 }
 
 export interface StudentSession {
@@ -56,8 +56,8 @@ const defaultConfig: ExamConfig = {
     ],
   },
   examDurationMinutes: parseInt(process.env.NEXT_PUBLIC_EXAM_DURATION || "60", 10),
-  minWordCount: 200,
-  maxWordCount: 1000,
+  minCharCount: 1000,
+  maxCharCount: 5000,
 };
 
 const defaultSession: StudentSession = {

@@ -34,6 +34,8 @@ export interface SubmissionInput {
   topic: string;
   essay: string;
   focusLossCount: number;
+  wordCount?: number;
+  charCount?: number;
 }
 
 export interface StudentSession {

@@ -3,51 +3,55 @@
 import { Button } from "@/components/ui/button";
 import { Loader2, Send, CheckCircle2, AlertCircle } from "lucide-react";
 
-interface SubmitButtonProps {
-  onClick: () => void;
-  isSubmitting: boolean;
-  isDisabled: boolean;
-  wordCount: number;
-}
-
-export function SubmitButton({
-  onClick,
-  isSubmitting,
-  isDisabled,
-  wordCount,
-}: SubmitButtonProps) {
-  const isValidWordCount = wordCount >= 100 && wordCount <= 300;
-  const hasContent = wordCount > 0;
-
-  const getButtonState = () => {
-    if (isSubmitting) {
-      return {
-        text: "Grading in Progress...",
-        icon: <Loader2 className="w-5 h-5 animate-spin" />,
-        className: "bg-primary/50 cursor-not-allowed",
-      };
-    }
-    if (!hasContent) {
-      return {
-        text: "Write your essay first",
-        icon: <AlertCircle className="w-5 h-5" />,
-        className: "bg-muted cursor-not-allowed opacity-50",
-      };
-    }
-    if (!isValidWordCount && wordCount < 100) {
-      return {
-        text: `${100 - wordCount} more words needed`,
-        icon: <AlertCircle className="w-5 h-5" />,
-        className: "bg-amber-500/80 hover:bg-amber-500",
-      };
-    }
-    if (!isValidWordCount && wordCount > 300) {
-      return {
-        text: "Exceeds word limit",
-        icon: <AlertCircle className="w-5 h-5" />,
-        className: "bg-red-500/80 hover:bg-red-500",
-      };
-    }
+  interface SubmitButtonProps {
+    onClick: () => void;
+    isSubmitting: boolean;
+    isDisabled: boolean;
+    charCount: number;
+    minCharCount?: number;
+    maxCharCount?: number;
+  }
+  
+  export function SubmitButton({
+    onClick,
+    isSubmitting,
+    isDisabled,
+    charCount,
+    minCharCount = 1000,
+    maxCharCount = 5000,
+  }: SubmitButtonProps) {
+    const isValidLength = charCount >= minCharCount && charCount <= maxCharCount;
+    const hasContent = charCount > 0;
+  
+    const getButtonState = () => {
+      if (isSubmitting) {
+        return {
+          text: "Grading in Progress...",
+          icon: <Loader2 className="w-5 h-5 animate-spin" />,
+          className: "bg-primary/50 cursor-not-allowed",
+        };
+      }
+      if (!hasContent) {
+        return {
+          text: "Write your essay first",
+          icon: <AlertCircle className="w-5 h-5" />,
+          className: "bg-muted cursor-not-allowed opacity-50",
+        };
+      }
+      if (!isValidLength && charCount < minCharCount) {
+        return {
+          text: `${minCharCount - charCount} more characters needed`,
+          icon: <AlertCircle className="w-5 h-5" />,
+          className: "bg-amber-500/80 hover:bg-amber-500",
+        };
+      }
+      if (!isValidLength && charCount > maxCharCount) {
+        return {
+          text: "Exceeds character limit",
+          icon: <AlertCircle className="w-5 h-5" />,
+          className: "bg-red-500/80 hover:bg-red-500",
+        };
+      }
     return {
       text: "Submit Essay",
       icon: <Send className="w-5 h-5" />,
@@ -72,7 +76,7 @@ export function SubmitButton({
     >
       {state.icon}
       {state.text}
-      {isValidWordCount && !isSubmitting && (
+      {isValidLength && !isSubmitting && (
         <CheckCircle2 className="w-4 h-4 ml-1" />
       )}
     </Button>

@@ -9,9 +9,17 @@ interface EditorProps {
   essay: string;
   setEssay: (value: string) => void;
   isDisabled: boolean;
+  minCharCount?: number;
+  maxCharCount?: number;
 }
 
-export function Editor({ essay, setEssay, isDisabled }: EditorProps) {
+export function Editor({
+  essay,
+  setEssay,
+  isDisabled,
+  minCharCount = 1000,
+  maxCharCount = 5000,
+}: EditorProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Auto-expand textarea
@@ -23,12 +31,11 @@ export function Editor({ essay, setEssay, isDisabled }: EditorProps) {
     }
   }, [essay]);
 
-  // Calculate word count
-  const wordCount = essay.trim() ? essay.trim().split(/\s+/).length : 0;
-  const isValidWordCount = wordCount >= 100 && wordCount <= 300;
-  const isUnderMin = wordCount < 100;
-  const isOverMax = wordCount > 300;
-
+  // Calculate character count
+  const charCount = essay.length;
+  // Get limits from props (passed from parent page which gets from context)
+  const isValidLength = charCount >= minCharCount && charCount <= maxCharCount;
+  
   // Block paste
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
@@ -55,16 +62,11 @@ export function Editor({ essay, setEssay, isDisabled }: EditorProps) {
           variant="outline"
           className={`
             px-3 py-1 font-mono text-sm transition-all
-            ${isValidWordCount ? "bg-emerald-500/20 border-emerald-500/30 text-emerald-400" : ""}
-            ${isUnderMin ? "bg-amber-500/20 border-amber-500/30 text-amber-400" : ""}
-            ${isOverMax ? "bg-red-500/20 border-red-500/30 text-red-400" : ""}
+            ${isValidLength ? "bg-emerald-500/20 border-emerald-500/30 text-emerald-400" : ""}
+            ${!isValidLength ? "bg-amber-500/20 border-amber-500/30 text-amber-400" : ""}
           `}
         >
-          {wordCount} / 100-300 words
-          {isValidWordCount && <CheckCircle2 className="w-3 h-3 ml-1 inline" />}
-          {(isUnderMin || isOverMax) && (
-            <AlertCircle className="w-3 h-3 ml-1 inline" />
-          )}
+          {charCount} characters
         </Badge>
       </div>
 
@@ -99,16 +101,16 @@ export function Editor({ essay, setEssay, isDisabled }: EditorProps) {
           }}
         />
 
-        {/* Word count guidance */}
+        {/* Char count guidance */}
         <div className="absolute bottom-4 right-4 pointer-events-none">
-          {isUnderMin && (
+          {charCount < minCharCount && (
             <p className="text-xs text-amber-500/70">
-              {100 - wordCount} more words needed
+              {minCharCount - charCount} more chars needed
             </p>
           )}
-          {isOverMax && (
+          {charCount > maxCharCount && (
             <p className="text-xs text-red-500/70">
-              {wordCount - 300} words over limit
+              {charCount - maxCharCount} chars over limit
             </p>
           )}
         </div>

@@ -47,8 +47,8 @@ export default function AdminPage() {
   const [categories, setCategories] = useState<string[]>([]);
   const [topics, setTopics] = useState<Record<string, string[]>>({});
   const [examDuration, setExamDuration] = useState(60);
-  const [minWordCount, setMinWordCount] = useState(200);
-  const [maxWordCount, setMaxWordCount] = useState(1000);
+  const [minCharCount, setMinCharCount] = useState(1000);
+  const [maxCharCount, setMaxCharCount] = useState(5000);
   const [newCategory, setNewCategory] = useState("");
   const [newTopic, setNewTopic] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -89,8 +89,8 @@ export default function AdminPage() {
     setCategories([...config.categories]);
     setTopics({ ...config.topics });
     setExamDuration(config.examDurationMinutes);
-    setMinWordCount(config.minWordCount);
-    setMaxWordCount(config.maxWordCount);
+    setMinCharCount(config.minCharCount);
+    setMaxCharCount(config.maxCharCount);
     if (config.categories.length > 0) {
       setSelectedCategory(config.categories[0]);
     }
@@ -160,8 +160,8 @@ export default function AdminPage() {
       categories,
       topics,
       examDurationMinutes: examDuration,
-      minWordCount,
-      maxWordCount,
+      minCharCount,
+      maxCharCount,
     });
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 3000);
@@ -421,29 +421,29 @@ export default function AdminPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="wordCount">Minimum Word Count</Label>
+                <Label htmlFor="charCount">Minimum Character Count</Label>
                 <Input
-                  id="wordCount"
+                  id="charCount"
                   type="number"
-                  min={50}
-                  max={2000}
-                  value={minWordCount}
-                  onChange={(e) => setMinWordCount(parseInt(e.target.value) || 200)}
+                  min={100}
+                  max={10000}
+                  value={minCharCount}
+                  onChange={(e) => setMinCharCount(parseInt(e.target.value) || 1000)}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="maxWordCount">Maximum Word Count</Label>
+                <Label htmlFor="maxCharCount">Maximum Character Count</Label>
                 <Input
-                  id="maxWordCount"
+                  id="maxCharCount"
                   type="number"
-                  min={100}
-                  max={5000}
-                  value={maxWordCount}
-                  onChange={(e) => setMaxWordCount(parseInt(e.target.value) || 1000)}
+                  min={500}
+                  max={20000}
+                  value={maxCharCount}
+                  onChange={(e) => setMaxCharCount(parseInt(e.target.value) || 5000)}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Essay must be between {minWordCount} and {maxWordCount} words
+                  Essay must be between {minCharCount} and {maxCharCount} characters
                 </p>
               </div>
 
@@ -456,7 +456,7 @@ export default function AdminPage() {
                     {Object.values(topics).reduce((sum, arr) => sum + arr.length, 0)}
                   </li>
                   <li>• Duration: {examDuration} minutes</li>
-                  <li>• Word Limit: {minWordCount} - {maxWordCount} words</li>
+                  <li>• Character Limit: {minCharCount} - {maxCharCount} chars</li>
                 </ul>
               </div>
 

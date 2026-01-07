@@ -21,14 +21,15 @@ export interface GradeResult {
 export async function gradeEssay(
   essay: string,
   topic: string,
-  wordCount: number
+  charCount: number
 ): Promise<GradeResult> {
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  console.log("Initializing Gemini with model: gemini-pro");
+  const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
   const prompt = `You are an essay grading assistant. Grade the following essay on a scale of 1-10.
 
 Topic: "${topic}"
-Word Count: ${wordCount} words (Required: 100-300 words)
+Character Count: ${charCount} characters (Required: 1000-5000 characters)
 
 Essay:
 """
@@ -54,7 +55,7 @@ Consider:
 - Relevance to the given topic (topicRelevance)
 - Originality and creativity (creativity)
 - Essay structure and organization (structure)
-- Word count compliance (penalize if outside 100-300 range)`;
+- Character count compliance (penalize if outside 1000-5000 range)`;
 
   try {
     const result = await model.generateContent(prompt);
