@@ -1,5 +1,4 @@
-import { saveSubmission, hasAlreadySubmitted, type SubmissionInput } from "./firestore";
-import { gradeEssayAction } from "@/app/actions/gradeEssay";
+import { hasAlreadySubmitted } from "./firestore";
 
   export interface SubmitData {
     essay: string;
@@ -61,31 +60,34 @@ import { gradeEssayAction } from "@/app/actions/gradeEssay";
         };
       }
   
-      // Grade the essay using Gemini AI
-      const gradeResult = await gradeEssayAction(data.essay, data.topic, charCount);
-  
-      // Save to Firestore
-      const submissionInput: SubmissionInput = {
-        rollNumber: data.rollNumber,
-        name: data.name,
-        category: data.category,
-        topic: data.topic,
-        essay: data.essay,
-        focusLossCount: data.focusLossCount,
-        charCount: charCount,
-        wordCount: wordCount, // Keep saving word count for reference
+      // Submit to Backend API
+      const response = await fetch('http://localhost:3001/api/submit-essay', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: data.rollNumber,
+          name: data.name,
+          essay: data.essay,
+          topic: data.topic,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit essay to backend');
+      }
+
+      await response.json();
+
+      return {
+        status: "success",
+        data: {
+          score: 0,
+          feedback: "Essay submitted! Check the leaderboard for your result shortly.",
+          checkpoints: {} as any,
+        },
       };
-
-    await saveSubmission(submissionInput, gradeResult);
-
-    return {
-      status: "success",
-      data: {
-        score: gradeResult.score,
-        feedback: gradeResult.feedback,
-        checkpoints: gradeResult.checkpoints,
-      },
-    };
   } catch (error) {
     console.error("Submission failed:", error);
     return {
