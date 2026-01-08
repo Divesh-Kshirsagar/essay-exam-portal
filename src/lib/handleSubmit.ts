@@ -45,18 +45,18 @@ import { hasAlreadySubmitted } from "./firestore";
       const maxChar = data.maxCharCount || 5000;
       const wordCount = data.essay.trim() ? data.essay.trim().split(/\s+/).length : 0;
   
-      // Validate character count
-      if (charCount < minChar) {
+      // Validate word count (100-300 words)
+      if (wordCount < 100) {
         return {
           status: "error",
-          error: `Essay must be at least ${minChar} characters. Current: ${charCount} chars.`,
+          error: `Essay must be at least 100 words. Current: ${wordCount} words.`,
         };
       }
   
-      if (charCount > maxChar) {
+      if (wordCount > 300) {
         return {
           status: "error",
-          error: `Essay must not exceed ${maxChar} characters. Current: ${charCount} chars.`,
+          error: `Essay must not exceed 300 words. Current: ${wordCount} words.`,
         };
       }
   

@@ -71,18 +71,26 @@ export function ResultsModal({ isOpen, onClose, result }: ResultsModalProps) {
 
         {isSuccess && result.data ? (
           <div className="space-y-6 py-4">
-            {/* Score Display */}
-            <div
-              className={`p-6 rounded-xl bg-gradient-to-br ${getScoreGradient(score)} border border-border/30 text-center`}
-            >
+            {/* Score Display / Status */}
+            <div className="p-6 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/5 border border-blue-500/30 text-center">
               <p className="text-sm text-muted-foreground uppercase tracking-wider mb-2">
-                Your Score
+                Status
               </p>
-              <div className="flex items-center justify-center gap-2">
-                <span className={`text-6xl font-bold ${getScoreColor(score)}`}>
-                  {score}
+              <div className="flex flex-col items-center justify-center gap-2">
+                <span className="text-2xl font-bold text-blue-400">
+                  Submission Received
                 </span>
-                <span className="text-2xl text-muted-foreground">/10</span>
+                <p className="text-sm text-muted-foreground">
+                  Your essay is being graded.
+                </p>
+                <div className="mt-4">
+                  <a 
+                    href="/leaderboard" 
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors text-sm"
+                  >
+                    View Leaderboard
+                  </a>
+                </div>
               </div>
             </div>
 
@@ -133,10 +141,11 @@ export function ResultsModal({ isOpen, onClose, result }: ResultsModalProps) {
                 className="flex-1 gap-2"
                 onClick={() => {
                   // Download receipt logic
+                  // Download receipt logic
                   const receipt = {
-                    score,
-                    feedback,
-                    checkpoints,
+                    status: "Submitted",
+                    score: "Pending", // Score is pending
+                    feedback: feedback || "Pending evaluation",
                     timestamp: new Date().toISOString(),
                   };
                   const blob = new Blob([JSON.stringify(receipt, null, 2)], {

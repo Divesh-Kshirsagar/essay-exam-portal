@@ -13,7 +13,7 @@ import { useDraftRecovery } from "@/hooks/useDraftRecovery";
 import { useFirestoreAutosave } from "@/hooks/useFirestoreAutosave";
 import { handleSubmit, type APIResponse } from "@/lib/handleSubmit";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Cloud, CloudOff } from "lucide-react";
+import { BookOpen, Cloud, CloudOff, CheckCircle2 } from "lucide-react";
 
 export default function ExamPage() {
   const router = useRouter();
@@ -55,17 +55,19 @@ export default function ExamPage() {
     session.examStarted && !isSubmitted
   );
 
-  // Calculate character count
-  const charCount = essay.length;
-  // Character count validation based on config
-  const isValidLength = charCount >= config.minCharCount && charCount <= config.maxCharCount;
+  // Calculate word count
+  const wordCount = essay.trim() ? essay.trim().split(/\s+/).length : 0;
+  const minWords = 100;
+  const maxWords = 300;
+  // Word count validation
+  const isValidLength = wordCount >= minWords && wordCount <= maxWords;
 
   // Handle time up
   const handleTimeUp = useCallback(() => {
     if (!isSubmitted) {
       handleSubmitClick();
-    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
+    }
   }, [isSubmitted]);
 
   // Handle submit
@@ -82,15 +84,21 @@ export default function ExamPage() {
         focusLossCount,
         category: session.category,
         topic: session.topic,
-        charCount,
-        minCharCount: config.minCharCount,
-        maxCharCount: config.maxCharCount,
+        charCount: essay.length, // Still pass char count if backend wants it, or change handleSubmit type
+        // Pass word count logic implicitly by not erroring here, 
+        // validation happens in handleSubmit too or backend
       });
 
       setResult(response);
       setShowResults(true);
-      setIsSubmitted(true);
-      clearDraft();
+      
+      if (response.status === "success") {
+        setIsSubmitted(true);
+        clearDraft();
+      } else {
+        // Error case: Don't set isSubmitted(true), so user can edit and retry.
+        setIsSubmitted(false); 
+      }
     } catch (error) {
       console.error("Submit error:", error);
       setResult({
@@ -98,6 +106,7 @@ export default function ExamPage() {
         error: "Failed to submit. Please try again.",
       });
       setShowResults(true);
+      setIsSubmitted(false); // Make sure it's false on error
     } finally {
       setIsSubmitting(false);
     }
@@ -121,6 +130,7 @@ export default function ExamPage() {
         examDurationMinutes={config.examDurationMinutes}
         isLocked={true}
         category={session.category}
+        isStopped={isSubmitted}
       />
 
       {/* Main Content */}
@@ -140,7 +150,12 @@ export default function ExamPage() {
             </div>
             {/* Autosave Status */}
             <div className="flex items-center gap-1 text-xs">
-              {isDirty ? (
+              {isSubmitted ? (
+                <span className="flex items-center gap-1 text-emerald-400">
+                  <CheckCircle2 className="w-3 h-3" />
+                  Submitted
+                </span>
+              ) : isDirty ? (
                 <span className="flex items-center gap-1 text-amber-400">
                   <CloudOff className="w-3 h-3" />
                   Saving...
@@ -161,8 +176,9 @@ export default function ExamPage() {
             essay={essay}
             setEssay={setEssay}
             isDisabled={isSubmitted || isSubmitting}
-            minCharCount={config.minCharCount}
-            maxCharCount={config.maxCharCount}
+            wordCount={wordCount}
+            minWords={minWords}
+            maxWords={maxWords}
           />
         </div>
 
@@ -172,9 +188,9 @@ export default function ExamPage() {
             onClick={handleSubmitClick}
             isSubmitting={isSubmitting}
             isDisabled={isSubmitted || !isValidLength}
-            charCount={charCount}
-            minCharCount={config.minCharCount}
-            maxCharCount={config.maxCharCount}
+            wordCount={wordCount}
+            minWords={minWords}
+            maxWords={maxWords}
           />
         </div>
       </main>

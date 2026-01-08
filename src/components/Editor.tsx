@@ -9,16 +9,18 @@ interface EditorProps {
   essay: string;
   setEssay: (value: string) => void;
   isDisabled: boolean;
-  minCharCount?: number;
-  maxCharCount?: number;
+  wordCount: number;
+  minWords?: number;
+  maxWords?: number;
 }
 
 export function Editor({
   essay,
   setEssay,
   isDisabled,
-  minCharCount = 1000,
-  maxCharCount = 5000,
+  wordCount,
+  minWords = 100,
+  maxWords = 300,
 }: EditorProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -31,10 +33,8 @@ export function Editor({
     }
   }, [essay]);
 
-  // Calculate character count
-  const charCount = essay.length;
-  // Get limits from props (passed from parent page which gets from context)
-  const isValidLength = charCount >= minCharCount && charCount <= maxCharCount;
+  // Word count validation
+  const isValidLength = wordCount >= minWords && wordCount <= maxWords;
   
   // Block paste
   const handlePaste = (e: React.ClipboardEvent) => {
@@ -66,7 +66,7 @@ export function Editor({
             ${!isValidLength ? "bg-amber-500/20 border-amber-500/30 text-amber-400" : ""}
           `}
         >
-          {charCount} characters
+          {wordCount} words
         </Badge>
       </div>
 
@@ -103,14 +103,14 @@ export function Editor({
 
         {/* Char count guidance */}
         <div className="absolute bottom-4 right-4 pointer-events-none">
-          {charCount < minCharCount && (
+          {wordCount < minWords && (
             <p className="text-xs text-amber-500/70">
-              {minCharCount - charCount} more chars needed
+              {minWords - wordCount} more words needed
             </p>
           )}
-          {charCount > maxCharCount && (
+          {wordCount > maxWords && (
             <p className="text-xs text-red-500/70">
-              {charCount - maxCharCount} chars over limit
+              {wordCount - maxWords} words over limit
             </p>
           )}
         </div>

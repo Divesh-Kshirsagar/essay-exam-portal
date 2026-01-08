@@ -7,21 +7,21 @@ import { Loader2, Send, CheckCircle2, AlertCircle } from "lucide-react";
     onClick: () => void;
     isSubmitting: boolean;
     isDisabled: boolean;
-    charCount: number;
-    minCharCount?: number;
-    maxCharCount?: number;
+    wordCount: number;
+    minWords?: number;
+    maxWords?: number;
   }
   
   export function SubmitButton({
     onClick,
     isSubmitting,
     isDisabled,
-    charCount,
-    minCharCount = 1000,
-    maxCharCount = 5000,
+    wordCount,
+    minWords = 100,
+    maxWords = 300,
   }: SubmitButtonProps) {
-    const isValidLength = charCount >= minCharCount && charCount <= maxCharCount;
-    const hasContent = charCount > 0;
+    const isValidLength = wordCount >= minWords && wordCount <= maxWords;
+    const hasContent = wordCount > 0;
   
     const getButtonState = () => {
       if (isSubmitting) {
@@ -38,16 +38,16 @@ import { Loader2, Send, CheckCircle2, AlertCircle } from "lucide-react";
           className: "bg-muted cursor-not-allowed opacity-50",
         };
       }
-      if (!isValidLength && charCount < minCharCount) {
+      if (!isValidLength && wordCount < minWords) {
         return {
-          text: `${minCharCount - charCount} more characters needed`,
+          text: `${minWords - wordCount} more words needed`,
           icon: <AlertCircle className="w-5 h-5" />,
           className: "bg-amber-500/80 hover:bg-amber-500",
         };
       }
-      if (!isValidLength && charCount > maxCharCount) {
+      if (!isValidLength && wordCount > maxWords) {
         return {
-          text: "Exceeds character limit",
+          text: "Exceeds word limit",
           icon: <AlertCircle className="w-5 h-5" />,
           className: "bg-red-500/80 hover:bg-red-500",
         };

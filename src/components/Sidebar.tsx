@@ -16,6 +16,7 @@ interface SidebarProps {
   examDurationMinutes: number;
   isLocked: boolean;
   category?: string;
+  isStopped?: boolean;
 }
 
 export function Sidebar({
@@ -28,6 +29,7 @@ export function Sidebar({
   examDurationMinutes,
   isLocked,
   category,
+  isStopped = false,
 }: SidebarProps) {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
@@ -68,7 +70,7 @@ export function Sidebar({
         `}
       >
         {/* Timer */}
-        <Timer initialMinutes={examDurationMinutes} onTimeUp={onTimeUp} />
+        <Timer initialMinutes={examDurationMinutes} onTimeUp={onTimeUp} isStopped={isStopped} />
 
         {/* Student Info */}
         <StudentInfo

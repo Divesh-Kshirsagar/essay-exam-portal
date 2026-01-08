@@ -6,13 +6,16 @@ import { Clock, AlertTriangle } from "lucide-react";
 interface TimerProps {
   initialMinutes: number;
   onTimeUp: () => void;
+  isStopped?: boolean;
 }
 
-export function Timer({ initialMinutes, onTimeUp }: TimerProps) {
+export function Timer({ initialMinutes, onTimeUp, isStopped = false }: TimerProps) {
   const [secondsRemaining, setSecondsRemaining] = useState(initialMinutes * 60);
   const [isWarning, setIsWarning] = useState(false);
 
   useEffect(() => {
+    if (isStopped) return;
+
     if (secondsRemaining <= 0) {
       onTimeUp();
       return;
