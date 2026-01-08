@@ -216,16 +216,7 @@ export default function LoginPage() {
               <li>• Copy/paste is disabled during exam</li>
             </ul>
           </div>
-
-          {/* Admin Link */}
-          <div className="mt-4 text-center">
-            <a
-              href="/admin"
-              className="text-xs text-muted-foreground hover:text-primary transition-colors"
-            >
-              Admin Access →
-            </a>
-          </div>
+  
         </CardContent>
       </Card>
     </div>

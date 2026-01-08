@@ -25,7 +25,16 @@ const fetcher = async () => {
   });
 };
 
-export default function LeaderboardList({ initialScores }) {
+export interface LeaderboardScore {
+  id: string;
+  name: string;
+  user_id: string;
+  total_score: number;
+  updated_at: string | null;
+  created_at: string | null;
+}
+
+export default function LeaderboardList({ initialScores }: { initialScores: LeaderboardScore[] }) {
   const { data: scores } = useSWR('leaderboard-scores', fetcher, {
     fallbackData: initialScores,
     refreshInterval: 30000, // Client polling 30s
