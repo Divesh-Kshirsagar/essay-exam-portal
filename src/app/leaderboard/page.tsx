@@ -20,10 +20,18 @@ async function getInitialScores() {
         limit(50)
       );
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      return querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          name: data.name,
+          user_id: data.user_id,
+          total_score: data.total_score,
+          // Serialize Firestore Timestamps to ISO strings or numbers
+          updated_at: data.updated_at?.toDate?.().toISOString() || data.updated_at || null,
+          created_at: data.created_at?.toDate?.().toISOString() || data.created_at || null,
+        };
+      });
   } catch (e) {
       console.error("Error fetching scores:", e);
       return [];

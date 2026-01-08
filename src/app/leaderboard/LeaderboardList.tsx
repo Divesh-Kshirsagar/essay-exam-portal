@@ -12,10 +12,17 @@ const fetcher = async () => {
     limit(50)
   );
   const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  }));
+  return querySnapshot.docs.map(doc => {
+    const data = doc.data();
+    return {
+      id: doc.id,
+      name: data.name,
+      user_id: data.user_id,
+      total_score: data.total_score,
+      updated_at: data.updated_at?.toDate?.().toISOString() || data.updated_at || null,
+      created_at: data.created_at?.toDate?.().toISOString() || data.created_at || null,
+    };
+  });
 };
 
 export default function LeaderboardList({ initialScores }) {
