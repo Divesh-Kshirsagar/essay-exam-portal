@@ -61,7 +61,8 @@ import { hasAlreadySubmitted } from "./firestore";
       }
   
       // Submit to Backend API
-      const response = await fetch('http://localhost:3001/api/submit-essay', {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const response = await fetch(`${backendUrl}/api/submit-essay`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
