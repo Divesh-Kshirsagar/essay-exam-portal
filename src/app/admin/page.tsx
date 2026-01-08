@@ -186,10 +186,10 @@ export default function AdminPage() {
   // Export results
   const handleExportResults = () => {
     const csv = [
-      "Roll Number,Category,Topic,Score,Focus Loss,Word Count,Submitted At",
+      "Reg Number,Name,Category,Topic,Score,Focus Loss,Word Count,Submitted At",
       ...results.map(
         (r) =>
-          `${r.rollNumber},${r.category},"${r.topic}",${r.score},${r.focusLossCount},${r.wordCount},${r.submittedAt instanceof Date ? r.submittedAt.toISOString() : r.submittedAt}`
+          `${r.rollNumber},"${r.name || '-'}",${r.category},"${r.topic}",${r.score},${r.focusLossCount},${r.wordCount},${r.submittedAt instanceof Date ? r.submittedAt.toISOString() : r.submittedAt}`
       ),
     ].join("\n");
 
@@ -528,7 +528,8 @@ export default function AdminPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border/50">
-                      <th className="text-left py-2 px-3">Roll No.</th>
+                      <th className="text-left py-2 px-3">Reg Number</th>
+                      <th className="text-left py-2 px-3">Name</th>
                       <th className="text-left py-2 px-3">Category</th>
                       <th className="text-left py-2 px-3">Topic</th>
                       <th className="text-center py-2 px-3">Score</th>
@@ -543,6 +544,7 @@ export default function AdminPage() {
                         className="border-b border-border/30 hover:bg-muted/20"
                       >
                         <td className="py-2 px-3 font-mono">{result.rollNumber}</td>
+                        <td className="py-2 px-3 font-medium">{result.name || "-"}</td>
                         <td className="py-2 px-3">
                           <Badge variant="outline">{result.category}</Badge>
                         </td>
