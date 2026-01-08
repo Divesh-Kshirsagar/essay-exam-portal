@@ -6,13 +6,7 @@ import { useExam } from "@/context/ExamContext";
 import { updateSessionTopic } from "@/lib/firestore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { BookOpen, Lock, Play, User, Layers, Loader2 } from "lucide-react";
@@ -32,8 +26,7 @@ export default function TopicSelectionPage() {
     }
   }, [session.isLoggedIn, router]);
 
-  // Get topics for selected category
-  const availableTopics = config.topics[session.category] || [];
+
 
   const handleLockTopic = async () => {
     if (!selectedTopic || isLocking) return;
@@ -113,27 +106,16 @@ export default function TopicSelectionPage() {
                 </Badge>
               )}
             </Label>
-            <Select
+            <Input
+              id="topic"
               value={selectedTopic}
-              onValueChange={setSelectedTopic}
+              onChange={(e) => setSelectedTopic(e.target.value)}
               disabled={isLocked}
-            >
-              <SelectTrigger
-                id="topic"
-                className={`${isLocked ? "opacity-70 cursor-not-allowed" : ""} ${
-                  selectedTopic ? "border-emerald-500/50" : ""
-                }`}
-              >
-                <SelectValue placeholder="Choose your essay topic" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableTopics.map((topic) => (
-                  <SelectItem key={topic} value={topic}>
-                    {topic}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              placeholder="Enter your essay topic manually"
+              className={`${isLocked ? "opacity-70 cursor-not-allowed" : ""} ${
+                selectedTopic ? "border-emerald-500/50" : ""
+              }`}
+            />
           </div>
 
           {/* Lock Button */}
